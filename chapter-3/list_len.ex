@@ -2,7 +2,7 @@
 # a list.
 # page 91
 
-defmodule Util do
+defmodule Utils do
   def list_len(list) do
     list_len_count(list, 0)
   end
