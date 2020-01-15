@@ -1,17 +1,28 @@
 # page 105
 
 defmodule TodoList do
-  def new(), do: %{}
+  def new(), do: MultiDict.new()
 
   def add_entry(todo_list, date, item) do
-    Map.update(todo_list, date, [item], fn todos -> [item | todos] end)
+    MultiDict.add(todo_list, date, item)
   end
 
   def entries(todo_list, date) do
-    Map.get(todo_list, date)
+    MultiDict.get(todo_list, date)
   end
 end
 
+defmodule MultiDict do
+  def new(), do: %{}
+
+  def add(dict, key, value) do
+    Map.update(dict, key, [value], fn previous -> [value | previous] end)
+  end
+
+  def get(dict, key) do
+    Map.get(dict, key)
+  end
+end
 
 defmodule Test do
   def it(title, fun) do
@@ -33,4 +44,3 @@ Test.it("can add and retrieve entries by date", fn() ->
 
   Test.equals(TodoList.entries(todo_list, ~D[2018-12-19]), ["Movies", "Dentist"])
 end)
-
