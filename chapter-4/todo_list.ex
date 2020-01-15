@@ -3,8 +3,8 @@
 defmodule TodoList do
   def new(), do: MultiDict.new()
 
-  def add_entry(todo_list, date, item) do
-    MultiDict.add(todo_list, date, item)
+  def add_entry(todo_list, item) do
+    MultiDict.add(todo_list, item.date, item)
   end
 
   def entries(todo_list, date) do
@@ -38,9 +38,32 @@ end
 Test.it("can add and retrieve entries by date", fn() ->
   todo_list =
     TodoList.new() |>
-      TodoList.add_entry(~D[2018-12-19], "Dentist") |>
-      TodoList.add_entry(~D[2018-12-20], "Shopping") |>
-      TodoList.add_entry(~D[2018-12-19], "Movies")
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Movies",
+        date: ~D[2018-12-19]
+      })
 
-  Test.equals(TodoList.entries(todo_list, ~D[2018-12-19]), ["Movies", "Dentist"])
+  IO.inspect(todo_list)
+
+  Test.equals(
+    TodoList.entries(todo_list, ~D[2018-12-19]),
+    [
+      %{
+        title: "Movies",
+        date: ~D[2018-12-19]
+      },
+      %{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }
+    ]
+  )
 end)
