@@ -6,20 +6,20 @@ defmodule TodoList do
   def new(), do: %TodoList{}
 
   def add_entry(todo_list, item) do
-    # MultiDict.add(todo_list, item.date, item)
-
     # add the id to the entry
     entry = Map.put(item, :id, todo_list.auto_id)
 
     # create new entries
     new_entries = Map.put(todo_list.entries, todo_list.auto_id, entry)
 
-    # add entries to new todo_list
-    new_todo_list = Map.put(todo_list, :entries, new_entries)
-      # and increment the id
-      |> Map.put(:auto_id, todo_list.auto_id + 1)
-
-    new_todo_list
+    # add new entries and auto increment the id on the struct in one swoop
+    %TodoList {
+      # existing todo_list
+      todo_list |
+      # modified properties on todo_list
+      entries: new_entries,
+      auto_id: todo_list.auto_id + 1
+    }
   end
 
   def entries(todo_list, date) do
