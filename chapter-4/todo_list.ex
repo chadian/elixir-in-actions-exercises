@@ -31,6 +31,16 @@ defmodule TodoList do
       # could be re-written in a terse, but less readable:
       # |> Enum.map(&(elem(&1, 1)))
   end
+
+  def update_entry(todo_list, id, entry) do
+    entry_with_id = Map.put(entry, :id, id)
+    new_entries = Map.put(todo_list.entries, id, entry_with_id)
+
+    %TodoList {
+      todo_list |
+      entries: new_entries
+    }
+  end
 end
 
 defmodule Test do
@@ -99,5 +109,32 @@ Test.it("can add and retrieve entries by date", fn() ->
         date: ~D[2018-12-19]
       }
     ]
+  )
+end)
+
+Test.it("can update entries with the provided map", fn ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      })
+
+  updated_todo_list = TodoList.update_entry(todo_list, 1, %{
+    title: "Oh no, the dentist",
+    date: ~D[2019-09-09]
+  })
+
+  Test.equals(
+    Map.get(updated_todo_list.entries, 1),
+    %{
+      id: 1,
+      title: "Oh no, the dentist",
+      date: ~D[2019-09-09]
+    }
   )
 end)
