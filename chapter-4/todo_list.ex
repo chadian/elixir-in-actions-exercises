@@ -24,10 +24,12 @@ defmodule TodoList do
 
   def entries(todo_list, date) do
     todo_list.entries
-      |> Map.values
-      |> Enum.filter(fn item ->
+      |> Stream.filter(fn {_id, item} ->
         item.date == date
       end)
+      |> Enum.map(fn {_id, item} -> item end)
+      # could be re-written in a terse, but less readable:
+      # |> Enum.map(&(elem(&1, 1)))
   end
 end
 
