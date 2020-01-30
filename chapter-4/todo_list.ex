@@ -23,7 +23,11 @@ defmodule TodoList do
   end
 
   def entries(todo_list, date) do
-    MultiDict.get(todo_list, date)
+    todo_list.entries
+      |> Map.values
+      |> Enum.filter(fn item ->
+        item.date == date
+      end)
   end
 end
 
@@ -63,33 +67,35 @@ Test.it("can add entries with an incrementing id", fn() ->
   })
 end)
 
-# Test.it("can add and retrieve entries by date", fn() ->
-#   todo_list =
-#     TodoList.new() |>
-#       TodoList.add_entry(%{
-#         title: "Dentist",
-#         date: ~D[2018-12-19]
-#       }) |>
-#       TodoList.add_entry(%{
-#         title: "Shopping",
-#         date: ~D[2018-12-20]
-#       }) |>
-#       TodoList.add_entry(%{
-#         title: "Movies",
-#         date: ~D[2018-12-19]
-#       })
+Test.it("can add and retrieve entries by date", fn() ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Movies",
+        date: ~D[2018-12-19]
+      })
 
-#   Test.equals(
-#     TodoList.entries(todo_list, ~D[2018-12-19]),
-#     [
-#       %{
-#         title: "Movies",
-#         date: ~D[2018-12-19]
-#       },
-#       %{
-#         title: "Dentist",
-#         date: ~D[2018-12-19]
-#       }
-#     ]
-#   )
-# end)
+  Test.equals(
+    TodoList.entries(todo_list, ~D[2018-12-19]),
+    [
+      %{
+        id: 1,
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      },
+      %{
+        id: 3,
+        title: "Movies",
+        date: ~D[2018-12-19]
+      }
+    ]
+  )
+end)
