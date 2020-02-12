@@ -38,7 +38,7 @@ defmodule TodoList do
         todo_list
 
       {:ok, existing_entry} ->
-        new_entry = updater_fn.(existing_entry)
+        new_entry = %{} = updater_fn.(existing_entry)
         new_entries = Map.put(todo_list.entries, id, new_entry)
 
         %TodoList {
@@ -182,4 +182,26 @@ Test.it("returns the %TodoList when update_entry doesn't exist", fn ->
     todo_list,
     unchanged_todo_list
   )
+end)
+
+Test.it("ensures only maps can be returned from the updater function when using update_entry", fn ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      })
+
+  try do
+    unchanged_todo_list = TodoList.update_entry(todo_list, 2, fn(existing_entry) ->
+      "this is not a map"
+    end)
+
+  rescue
+    error -> Test.equals(error, %MatchError{term: "this is not a map"})
+  end
 end)
