@@ -33,13 +33,19 @@ defmodule TodoList do
   end
 
   def update_entry(todo_list, id, entry) do
-    entry_with_id = Map.put(entry, :id, id)
-    new_entries = Map.put(todo_list.entries, id, entry_with_id)
+    case Map.fetch(todo_list.entries, id) do
+      :error ->
+        todo_list
 
-    %TodoList {
-      todo_list |
-      entries: new_entries
-    }
+      {:ok, existing_entry} ->
+        entry_with_id = Map.put(entry, :id, id)
+        new_entries = Map.put(todo_list.entries, id, entry_with_id)
+
+        %TodoList {
+          todo_list |
+          entries: new_entries
+        }
+    end
   end
 end
 
@@ -136,5 +142,55 @@ Test.it("can update entries with the provided map", fn ->
       title: "Oh no, the dentist",
       date: ~D[2019-09-09]
     }
+  )
+end)
+
+Test.it("supports using an updater function with", fn ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      })
+
+  non_existent_todo_id = 5
+
+  unupdated_todo_list = TodoList.update_entry(todo_list, non_existent_todo_id, %{
+    title: "Oh no, the dentist",
+    date: ~D[2019-09-09]
+  })
+
+  Test.equals(
+    todo_list,
+    unupdated_todo_list
+  )
+end)
+
+Test.it("returns the %TodoList when update_entry doesn't exist", fn ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      })
+
+  non_existent_todo_id = 5
+
+  unupdated_todo_list = TodoList.update_entry(todo_list, non_existent_todo_id, %{
+    title: "Oh no, the dentist",
+    date: ~D[2019-09-09]
+  })
+
+  Test.equals(
+    todo_list,
+    unupdated_todo_list
   )
 end)
