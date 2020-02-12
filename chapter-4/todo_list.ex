@@ -32,14 +32,14 @@ defmodule TodoList do
       # |> Enum.map(&(elem(&1, 1)))
   end
 
-  def update_entry(todo_list, id, entry) do
+  def update_entry(todo_list, id, updater_fn) do
     case Map.fetch(todo_list.entries, id) do
       :error ->
         todo_list
 
       {:ok, existing_entry} ->
-        entry_with_id = Map.put(entry, :id, id)
-        new_entries = Map.put(todo_list.entries, id, entry_with_id)
+        new_entry = updater_fn.(existing_entry)
+        new_entries = Map.put(todo_list.entries, id, new_entry)
 
         %TodoList {
           todo_list |
@@ -118,7 +118,7 @@ Test.it("can add and retrieve entries by date", fn() ->
   )
 end)
 
-Test.it("can update entries with the provided map", fn ->
+Test.it("can update entries with an updater function", fn ->
   todo_list =
     TodoList.new() |>
       TodoList.add_entry(%{
@@ -130,43 +130,29 @@ Test.it("can update entries with the provided map", fn ->
         date: ~D[2018-12-20]
       })
 
-  updated_todo_list = TodoList.update_entry(todo_list, 1, %{
-    title: "Oh no, the dentist",
-    date: ~D[2019-09-09]
-  })
-
-  Test.equals(
-    Map.get(updated_todo_list.entries, 1),
+  updated_todo_list = TodoList.update_entry(todo_list, 2, fn(existing_entry) ->
     %{
-      id: 1,
+      existing_entry |
       title: "Oh no, the dentist",
       date: ~D[2019-09-09]
     }
-  )
-end)
-
-Test.it("supports using an updater function with", fn ->
-  todo_list =
-    TodoList.new() |>
-      TodoList.add_entry(%{
-        title: "Dentist",
-        date: ~D[2018-12-19]
-      }) |>
-      TodoList.add_entry(%{
-        title: "Shopping",
-        date: ~D[2018-12-20]
-      })
-
-  non_existent_todo_id = 5
-
-  unupdated_todo_list = TodoList.update_entry(todo_list, non_existent_todo_id, %{
-    title: "Oh no, the dentist",
-    date: ~D[2019-09-09]
-  })
+  end)
 
   Test.equals(
-    todo_list,
-    unupdated_todo_list
+    updated_todo_list.entries,
+
+    %{
+      1 => %{
+        id: 1,
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      },
+      2 => %{
+        id: 2,
+        title: "Oh no, the dentist",
+        date: ~D[2019-09-09]
+      }
+    }
   )
 end)
 
@@ -184,13 +170,16 @@ Test.it("returns the %TodoList when update_entry doesn't exist", fn ->
 
   non_existent_todo_id = 5
 
-  unupdated_todo_list = TodoList.update_entry(todo_list, non_existent_todo_id, %{
-    title: "Oh no, the dentist",
-    date: ~D[2019-09-09]
-  })
+  unchanged_todo_list = TodoList.update_entry(todo_list, non_existent_todo_id, fn(existing_entry) ->
+    %{
+      existing_entry |
+      title: "Oh no, the dentist",
+      date: ~D[2019-09-09]
+    }
+  end)
 
   Test.equals(
     todo_list,
-    unupdated_todo_list
+    unchanged_todo_list
   )
 end)
