@@ -38,7 +38,9 @@ defmodule TodoList do
         todo_list
 
       {:ok, existing_entry} ->
-        new_entry = %{} = updater_fn.(existing_entry)
+        existing_entry_id = existing_entry.id
+
+        new_entry = %{ id: ^existing_entry_id } = updater_fn.(existing_entry)
         new_entries = Map.put(todo_list.entries, id, new_entry)
 
         %TodoList {
@@ -197,11 +199,35 @@ Test.it("ensures only maps can be returned from the updater function when using 
       })
 
   try do
-    unchanged_todo_list = TodoList.update_entry(todo_list, 2, fn(existing_entry) ->
+    TodoList.update_entry(todo_list, 2, fn(existing_entry) ->
       "this is not a map"
     end)
 
   rescue
     error -> Test.equals(error, %MatchError{term: "this is not a map"})
+  end
+end)
+
+Test.it("ensures maps can be returned from the updater function have same starting id when using update_entry", fn ->
+  todo_list =
+    TodoList.new() |>
+      TodoList.add_entry(%{
+        title: "Dentist",
+        date: ~D[2018-12-19]
+      }) |>
+      TodoList.add_entry(%{
+        title: "Shopping",
+        date: ~D[2018-12-20]
+      })
+
+  try do
+    result = TodoList.update_entry(todo_list, 2, fn(existing_entry) ->
+      %{
+        # started off as 2, but here it's 3
+        :id => 3
+      }
+    end)
+  rescue
+    error -> Test.equals(error, %MatchError{term: %{id: 3}})
   end
 end)
